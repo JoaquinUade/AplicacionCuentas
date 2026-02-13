@@ -1,0 +1,105 @@
+/* =========================================
+   Paleta + tokens (fácil de mantener)
+   ========================================= */
+*{
+    -color-bg:        #0f172a;  /* fondo app */
+    -color-panel:     #0b1220;  /* menú lateral */
+    -color-surface:   #111827;  /* definir negro azulado como color del fondo */
+    -color-text:      #e5e7eb;  /* texto primario */
+    -color-muted:     #9ca3af;  /* texto secundario */
+    -color-primary:   #a10030;  /* verde acento */
+    -color-primary-2: #cc0033;  /* hover */
+    -color-outline:   rgba(255,255,255,0.1);
+
+    -radius: 12px;
+    -shadow: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);
+}
+
+/* ===== Base ===== */
+.root {
+    /*-fx-background-color: -color-bg;*/
+    -fx-font-family: "Segoe UI", "Inter", "Roboto", "Helvetica", Arial, sans-serif;
+    -fx-text-fill: -color-text;
+}
+
+/* ===== Menú navtab ===== */
+.menu {
+    -fx-background-color: linear-gradient(to bottom, #0d1324, -color-panel);/*color de navtab*/
+    -fx-padding: 20;
+    -fx-effect: -shadow;
+}
+
+/* Botón del menú = estilo flat, moderno */
+.menu .button {
+    -fx-background-color: transparent;/*color del boton osea sin color*/
+    -fx-text-fill: -color-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-alignment: CENTER;
+    -fx-padding: 12 14;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-border-color: transparent;
+    -fx-graphic-text-gap: 10;
+}
+.menu .button:hover {
+    -fx-background-color: rgba(255,255,255,0.07);/*que se aclare el color del boton cuando pasas
+                                                   el cursor*/
+}
+.menu .button:focused {
+    -fx-background-color: rgba(121, 0, 10, 0.418);/*color de boton elegido*/
+    -fx-border-color: -color-primary;
+}
+
+/* Estado seleccionado/activo del menú */
+.menu .button.active {
+    -fx-background-color: rgba(199, 0, 43, 0.18);/*color mientras esta siendo presionado*/
+    -fx-text-fill: white;
+    -fx-border-color: -color-primary;
+}
+/* ===== Contenido ===== */
+.content {
+    -fx-background-color: -color-surface;/*color de fondo*/
+    -fx-padding: 32;
+}
+
+/* letrero de welcome */
+.title-xl {
+    -fx-font-size: 42px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -color-text;
+    -fx-padding: 18 28;
+    -fx-background-color: rgba(255,255,255,0.05);/*color del letrero de welcome*/
+    -fx-background-radius: 14px;
+    -fx-border-color: -color-outline;
+    -fx-border-radius: 14px;
+}
+
+.button:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+.button:focused {
+    -fx-border-color: -color-primary;
+    -fx-effect: dropshadow(gaussian, rgba(214, 40, 40, 0.45), 10, 0.3, 0, 0);
+}
+
+/* Item decorativo del logo en el menú */
+.menu-logo {
+    -fx-min-height: 100px;      /* alto visual similar a un botón con ícono+texto */
+    -fx-pref-height: 100px;
+    -fx-max-height: 120px;     /* margen por si agrandás el logo */
+    -fx-alignment: center;     /* centrar el logo */
+    -fx-padding: 8 0 14 0;     /* respiro arriba/abajo */
+}
+/* Quitar fondo/relleno del contenedor y viewport */
+.scroll-pane {
+    -fx-background-color: -color-surface;
+    -fx-padding: 0;
+}
+/* Hacer invisibles y sin ancho/alto a las barras */
+.scroll-pane .scroll-bar:vertical {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-background-color: transparent;
+}
