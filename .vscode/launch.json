@@ -8,6 +8,17 @@
             "mainClass": "com.uade.tpo.demo.DemoApplication",
             "projectName": "demo",
             "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=58290 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=demo"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-Aplicacion<interfaz>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "paucar.Aplicacion",
+            "projectName": "interfaz",
+            "args": "",
             "envFile": "${workspaceFolder}/.env"
         }
     ]

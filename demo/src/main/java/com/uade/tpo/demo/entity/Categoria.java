@@ -4,7 +4,16 @@ public enum Categoria {
     ENTRADA("Entrada"),
     BEBIDA("Bebida"),
     DESAYUNO("Desayuno"),
-    ALMUERZO("Almuerzo");
+    OTROS("Otros"),
+    GUARNICIONES("Guarniciones"),
+    SANDWICHES("Sandwiches"),
+    POSTRES("Postres"),
+    FAJITAS("Fajitas"),
+    WOKS("Woks"),
+    PASTAS("Pastas"),
+    ENSALADAS("Ensaladas"),
+    MILANESAS("Milanesas"),
+    VINOS("Vinos");
 
     private final String descripcion;
 

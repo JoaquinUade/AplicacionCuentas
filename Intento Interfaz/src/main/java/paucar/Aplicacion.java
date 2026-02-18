@@ -18,6 +18,8 @@ import javafx.stage.Stage;
 
 public class Aplicacion extends Application {
 
+    private Ventas vistaVentas;// ← guardamos UNA instancia reutilizable
+
     @Override
     public void start(Stage stage) {
 
@@ -107,7 +109,9 @@ public class Aplicacion extends Application {
         menuScroll.setFocusTraversable(false); // no roba el foco al iniciar
 
         root.setLeft(menuScroll);
+        VBox home = contenido;
         root.setCenter(contenido);
+        vistaVentas = new Ventas();// así no se pierde el estado al navegar, asi no se eliminara la tabla ya escrita en ventas
 
         stage.setTitle("Interfaz");
         stage.setScene(scene);
@@ -115,11 +119,19 @@ public class Aplicacion extends Application {
         stage.show();
 
         // ===== Demo: al hacer clic cambiamos el “activo” =====
-        btnResumen.setOnAction(e -> marcarActivo(btnResumen, btnVentas, btnGastos, btnStock, btnCalcula));
+        btnResumen.setOnAction(e -> {
+            marcarActivo(btnResumen, btnVentas, btnGastos, btnStock, btnCalcula);
+            root.setCenter(home); // volvemos a “Bienvenido UwU”
+        });
         btnGastos.setOnAction(e -> marcarActivo(btnGastos, btnVentas, btnResumen, btnStock, btnCalcula));
         btnStock.setOnAction(e -> marcarActivo(btnStock, btnVentas, btnResumen, btnGastos, btnCalcula));
         btnCalcula.setOnAction(e -> marcarActivo(btnCalcula, btnVentas, btnResumen, btnGastos, btnStock));
-        btnVentas.setOnAction(e -> marcarActivo(btnVentas, btnResumen, btnGastos, btnStock, btnCalcula));
+        btnVentas.setOnAction(e -> {
+            marcarActivo(btnVentas, btnResumen, btnGastos, btnStock, btnCalcula);
+            root.setCenter(vistaVentas);      // reutilizamos la misma instancia
+            vistaVentas.recargarDelBackend(); // refrescamos por si hubo cambios
+        });
+
     }
 
     private Button crearBotonConIcono(String texto, String rutaIcono) {
