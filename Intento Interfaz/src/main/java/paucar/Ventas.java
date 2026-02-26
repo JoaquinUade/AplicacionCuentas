@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+//import com.uade.tpo.demo.entity.Producto;
 import com.uade.tpo.demo.entity.TipoCliente;
 
 import javafx.application.Platform;
@@ -40,16 +41,25 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import paucar.service.ProductosService;
+import paucar.service.ClientesService;
 import paucar.service.VentasBackend;
-
 
 public final class Ventas extends BorderPane {
 
-    private static final Locale LOCALE_AR = new Locale("es", "AR");
+    private static final Locale LOCALE_AR = Locale.of("es", "AR");
     private final NumberFormat MONEDA = NumberFormat.getCurrencyInstance(LOCALE_AR);
 
+// ===== Dependencias (services/backends) =====
+    private static final String API_BASE = "http://localhost:4002/api";
+
     // ===== Dependencia (backend) =====
-    private final VentasBackend backend = new VentasBackend("http://localhost:4002/api");
+    private final ProductosService productosService = new ProductosService("http://localhost:4002/api");
+    private final ClientesService clientesService = new ClientesService("http://localhost:4002/api");
+    private final VentasBackend backend = new VentasBackend(API_BASE, clientesService);/*creamos una
+                                                                                                  instancia del
+                                                                                            cliente apuntando a
+                                                                                            base_url*/
 
     // ===== Modelo de una fila (UI) =====
     public static class Fila {
@@ -57,24 +67,56 @@ public final class Ventas extends BorderPane {
         private final StringProperty nombre = new SimpleStringProperty("");
         private final StringProperty descripcion = new SimpleStringProperty("");
         private final ObjectProperty<BigDecimal> monto = new SimpleObjectProperty<>(BigDecimal.ZERO);
-        private final ObjectProperty<VentasBackend.TipoDePago> estado =
-                new SimpleObjectProperty<>(VentasBackend.TipoDePago.EFECTIVO);
+        private final ObjectProperty<VentasBackend.TipoDePago> estado
+                = new SimpleObjectProperty<>(VentasBackend.TipoDePago.EFECTIVO);
 
-        public String getNombre() { return nombre.get(); }
-        public void setNombre(String v) { nombre.set(v); }
-        public StringProperty nombreProperty() { return nombre; }
+        public String getNombre() {
+            return nombre.get();
+        }
 
-        public String getDescripcion() { return descripcion.get(); }
-        public void setDescripcion(String v) { descripcion.set(v); }
-        public StringProperty descripcionProperty() { return descripcion; }
+        public void setNombre(String v) {
+            nombre.set(v);
+        }
 
-        public BigDecimal getMonto() { return monto.get(); }
-        public void setMonto(BigDecimal v) { monto.set(v); }
-        public ObjectProperty<BigDecimal> montoProperty() { return monto; }
+        public StringProperty nombreProperty() {
+            return nombre;
+        }
 
-        public VentasBackend.TipoDePago getEstado() { return estado.get(); }
-        public void setEstado(VentasBackend.TipoDePago v) { estado.set(v); }
-        public ObjectProperty<VentasBackend.TipoDePago> estadoProperty() { return estado; }
+        public String getDescripcion() {
+            return descripcion.get();
+        }
+
+        public void setDescripcion(String v) {
+            descripcion.set(v);
+        }
+
+        public StringProperty descripcionProperty() {
+            return descripcion;
+        }
+
+        public BigDecimal getMonto() {
+            return monto.get();
+        }
+
+        public void setMonto(BigDecimal v) {
+            monto.set(v);
+        }
+
+        public ObjectProperty<BigDecimal> montoProperty() {
+            return monto;
+        }
+
+        public VentasBackend.TipoDePago getEstado() {
+            return estado.get();
+        }
+
+        public void setEstado(VentasBackend.TipoDePago v) {
+            estado.set(v);
+        }
+
+        public ObjectProperty<VentasBackend.TipoDePago> estadoProperty() {
+            return estado;
+        }
     }
 
     // ===== Estado de la vista =====
@@ -92,10 +134,19 @@ public final class Ventas extends BorderPane {
 
     // ===== Productos (sugerencias) =====
     private static class Producto {
+
         final Long id;
         final String nombre;
-        Producto(Long id, String nombre) { this.id = id; this.nombre = nombre; }
-        @Override public String toString() { return nombre; } // para mostrar en ComboBox
+
+        Producto(Long id, String nombre) {
+            this.id = id;
+            this.nombre = nombre;
+        }
+
+        @Override
+        public String toString() {
+            return nombre;
+        } // para mostrar en ComboBox
     }
     private final ObservableList<Producto> productos = FXCollections.observableArrayList();
 
@@ -164,6 +215,7 @@ public final class Ventas extends BorderPane {
         colEstado.setCellValueFactory(c -> c.getValue().estadoProperty());
         colEstado.setCellFactory(col -> new TableCell<>() {
             private final ComboBox<VentasBackend.TipoDePago> combo = new ComboBox<>();
+
             {
                 combo.getItems().setAll(VentasBackend.TipoDePago.values());
                 combo.valueProperty().addListener((o, a, b) -> {
@@ -172,6 +224,7 @@ public final class Ventas extends BorderPane {
                     }
                 });
             }
+
             @Override
             protected void updateItem(VentasBackend.TipoDePago item, boolean empty) {
                 super.updateItem(item, empty);
@@ -233,7 +286,9 @@ public final class Ventas extends BorderPane {
     }
 
     private String formatear(BigDecimal v) {
-        if (v == null) return "$ 0,00";
+        if (v == null) {
+            return "$ 0,00";
+        }
         return MONEDA.format(v);
     }
 
@@ -249,10 +304,14 @@ public final class Ventas extends BorderPane {
 
     // ===== Deducción de tipo de cliente por nombre (heurística simple) =====
     private TipoCliente deducirTipoCliente(String nombre) {
-        if (nombre == null) return TipoCliente.CLIENTE;
+        if (nombre == null) {
+            return TipoCliente.CLIENTE;
+        }
         String n = nombre.trim().toLowerCase();
 
-        if (n.startsWith("mesa ")) return TipoCliente.MESA;
+        if (n.startsWith("mesa ")) {
+            return TipoCliente.MESA;
+        }
 
         if (n.contains(" srl") || n.endsWith(" srl") || n.contains(" s.a") || n.contains(" sa")
                 || n.contains("empresa") || n.contains("estudio") || n.contains("industria")) {
@@ -264,43 +323,43 @@ public final class Ventas extends BorderPane {
     // ====== Cargas iniciales (asíncronas) ======
     private void cargarClientesAsync() {
         CompletableFuture
-                .supplyAsync(() -> backend.obtenerTodosLosClientesMenosMesas())
+                .supplyAsync(() -> clientesService.obtenerTodosLosClientesMenosMesas())
                 .thenAccept(lista -> Platform.runLater(() -> clientes.setAll(lista)));
     }
 
     private void cargarProductosAsync() {
         CompletableFuture
-                .supplyAsync(backend::cargarProductos)
+                .supplyAsync(productosService::cargarProductos)
                 .thenAccept(items -> Platform.runLater(() -> {
-                    var mapped = items.stream()
-                            .map(p -> new Producto(p.id(), p.nombre()))
-                            .sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.nombre, b.nombre))
-                            .collect(Collectors.toList());
-                    productos.setAll(mapped);
-                }));
+            var mapped = items.stream()
+                    .map(p -> new Producto(p.id(), p.nombre()))
+                    .sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.nombre, b.nombre))
+                    .collect(Collectors.toList());
+            productos.setAll(mapped);
+        }));
     }
 
     public void recargarDelBackend() {
         CompletableFuture
                 .supplyAsync(() -> backend.cargarVentasDelDia(LocalDate.now()))
                 .thenAccept(lista -> Platform.runLater(() -> {
-                    var nuevas = FXCollections.<Fila>observableArrayList();
-                    for (VentasBackend.VentaFilaDto dto : lista) {
-                        Fila f = new Fila();
-                        f.setNombre(dto.nombre());
-                        f.setDescripcion(dto.descripcion());
-                        f.setMonto(dto.monto());
-                        f.setEstado(dto.estado());
-                        nuevas.add(f);
-                    }
-                    filas.setAll(nuevas);
-                    recomputeTotal();
-                }));
+            var nuevas = FXCollections.<Fila>observableArrayList();
+            for (VentasBackend.VentaFilaDto dto : lista) {
+                Fila f = new Fila();
+                f.setNombre(dto.nombre());
+                f.setDescripcion(dto.descripcion());
+                f.setMonto(dto.monto());
+                f.setEstado(dto.estado());
+                nuevas.add(f);
+            }
+            filas.setAll(nuevas);
+            recomputeTotal();
+        }));
     }
 
     // ===== Diálogo Agregar =====
-
     private static class PedidoNuevo {
+
         String nombreCliente;
         java.util.List<Long> idProductos = new java.util.ArrayList<>();
         java.util.List<Integer> cantidades = new java.util.ArrayList<>();
@@ -322,7 +381,9 @@ public final class Ventas extends BorderPane {
         cbCliente.getEditor().textProperty().addListener((obs, old, val) -> {
             String txt = (val == null ? "" : val.trim().toLowerCase());
             clientesFiltrados.setPredicate(s -> s == null || txt.isEmpty() || s.toLowerCase().contains(txt));
-            if (!cbCliente.isShowing() && !txt.isEmpty()) cbCliente.show();
+            if (!cbCliente.isShowing() && !txt.isEmpty()) {
+                cbCliente.show();
+            }
         });
 
         // === Sección de líneas (Producto + Cantidad) ===
@@ -390,7 +451,9 @@ public final class Ventas extends BorderPane {
         Node okBtn = dialog.getDialogPane().lookupButton(okType);
         okBtn.disableProperty().bind(Bindings.createBooleanBinding(() -> {
             String nombre = cbCliente.getEditor().getText();
-            if ((nombre == null || nombre.isBlank()) && cbCliente.getValue() == null) return true;
+            if ((nombre == null || nombre.isBlank()) && cbCliente.getValue() == null) {
+                return true;
+            }
 
             for (var n : contLineas.getChildren()) {
                 if (n instanceof HBox fila) {
@@ -400,8 +463,11 @@ public final class Ventas extends BorderPane {
                     if (cb.getValue() != null && tf.getText() != null && !tf.getText().isBlank()) {
                         try {
                             int c = Integer.parseInt(tf.getText());
-                            if (c >= 1) return false;
-                        } catch (NumberFormatException ignore) {}
+                            if (c >= 1) {
+                                return false;
+                            }
+                        } catch (NumberFormatException ignore) {
+                        }
                     }
                 }
             }
@@ -414,7 +480,9 @@ public final class Ventas extends BorderPane {
             if (btn == okType) {
                 PedidoNuevo p = new PedidoNuevo();
                 String nombre = cbCliente.getEditor().getText();
-                if (nombre == null || nombre.isBlank()) nombre = cbCliente.getValue();
+                if (nombre == null || nombre.isBlank()) {
+                    nombre = cbCliente.getValue();
+                }
                 p.nombreCliente = (nombre == null ? "" : nombre.trim());
                 p.estado = cbEstado.getValue();
                 p.observaciones = tfObs.getText() == null ? "" : tfObs.getText().trim();
@@ -433,7 +501,8 @@ public final class Ventas extends BorderPane {
                                     p.idProductos.add(prod.id);
                                     p.cantidades.add(c);
                                 }
-                            } catch (NumberFormatException ignore) {}
+                            } catch (NumberFormatException ignore) {
+                            }
                         }
                     }
                 }
@@ -452,39 +521,41 @@ public final class Ventas extends BorderPane {
 
         if (tipo == TipoCliente.MESA) {
             CompletableFuture
-                .supplyAsync(() -> backend.GuardarPedidoMesas(
-                        p.nombreCliente, p.idProductos, p.cantidades, p.estado, p.observaciones))
-                .thenAccept(ok -> Platform.runLater(() -> {
-                    if (ok) recargarDelBackend();
-                }));
+                    .supplyAsync(() -> backend.GuardarPedidoMesas(
+                    p.nombreCliente, p.idProductos, p.cantidades, p.estado, p.observaciones))
+                    .thenAccept(ok -> Platform.runLater(() -> {
+                if (ok) {
+                    recargarDelBackend();
+                }
+            }));
             return;
         }
 
         CompletableFuture
-            .runAsync(() -> backend.crearClienteSiNoExiste(p.nombreCliente, tipo))
-            .thenCompose(v -> CompletableFuture.supplyAsync(() -> backend.obtenerClienteIdPorNombre(p.nombreCliente)))
-            .thenCompose(idCliente -> {
-                if (idCliente == null) {
-                    Platform.runLater(() -> {
-                        var dlg = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
-                        dlg.setTitle("Cliente no encontrado");
-                        dlg.setHeaderText("No se pudo obtener el ID del cliente");
-                        dlg.setContentText("Verificá el nombre del cliente o volvé a intentar.");
-                        dlg.showAndWait();
-                    });
-                    return CompletableFuture.completedFuture(false);
-                }
-                return CompletableFuture.supplyAsync(() -> backend.GuardarPedidos(
-                        idCliente, p.idProductos, p.cantidades, p.estado, p.observaciones));
-            })
-            .thenAccept(ok -> Platform.runLater(() -> {
-                if (ok) {
-                    if (!clientes.contains(p.nombreCliente)) {
-                        clientes.add(p.nombreCliente);
-                        FXCollections.sort(clientes, String.CASE_INSENSITIVE_ORDER);
+                .runAsync(() -> clientesService.crearClienteSiNoExiste(p.nombreCliente, tipo))
+                .thenCompose(v -> CompletableFuture.supplyAsync(() -> clientesService.obtenerClienteIdPorNombre(p.nombreCliente)))
+                .thenCompose(idCliente -> {
+                    if (idCliente == null) {
+                        Platform.runLater(() -> {
+                            var dlg = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+                            dlg.setTitle("Cliente no encontrado");
+                            dlg.setHeaderText("No se pudo obtener el ID del cliente");
+                            dlg.setContentText("Verificá el nombre del cliente o volvé a intentar.");
+                            dlg.showAndWait();
+                        });
+                        return CompletableFuture.completedFuture(false);
                     }
-                    recargarDelBackend();
+                    return CompletableFuture.supplyAsync(() -> backend.GuardarPedidos(
+                            idCliente, p.idProductos, p.cantidades, p.estado, p.observaciones));
+                })
+                .thenAccept(ok -> Platform.runLater(() -> {
+            if (ok) {
+                if (!clientes.contains(p.nombreCliente)) {
+                    clientes.add(p.nombreCliente);
+                    FXCollections.sort(clientes, String.CASE_INSENSITIVE_ORDER);
                 }
-            }));
+                recargarDelBackend();
+            }
+        }));
     }
 }
